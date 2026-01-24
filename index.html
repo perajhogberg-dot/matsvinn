@@ -44,6 +44,10 @@
             padding: 20px;
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         /* Login Screen */
         .login-container {
             min-height: 100vh;
@@ -73,6 +77,11 @@
             color: var(--gray);
             margin-bottom: 40px;
             font-size: 0.95rem;
+        }
+
+        .logo-emoji {
+            font-size: 1.8rem;
+            margin-right: 8px;
         }
 
         .form-group {
@@ -153,14 +162,13 @@
             color: white;
         }
 
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
         .btn-success {
             background: var(--green-light);
             color: white;
+        }
+
+        .btn-success:hover {
+            background: var(--green);
         }
 
         /* Header */
@@ -185,11 +193,6 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--green);
-        }
-
-        .logo-emoji {
-            font-size: 1.8rem;
-            margin-right: 8px;
         }
 
         .user-info {
@@ -421,11 +424,6 @@
             color: var(--green-dark);
         }
 
-        .status-active {
-            background: rgba(224, 122, 95, 0.2);
-            color: var(--orange);
-        }
-
         .tabs {
             display: flex;
             gap: 10px;
@@ -460,6 +458,15 @@
             background: var(--green);
         }
 
+        .demo-info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
             .offers-grid {
                 grid-template-columns: 1fr;
@@ -483,22 +490,75 @@
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1><span class="logo-emoji">🥬</span>Matsvinn</h1>
+            <p class="subtitle">Mullsjö - Minska matsvinnet tillsammans</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Användarnamn</label>
+                    <input 
+                        type="text" 
+                        id="username"
+                        placeholder="ica, coop, restaurang1..."
+                        required
+                    />
+                </div>
+                <div class="form-group">
+                    <label>Lösenord</label>
+                    <input 
+                        type="password"
+                        id="password"
+                        required
+                    />
+                </div>
+                <button type="submit" class="btn btn-primary">Logga in</button>
+            </form>
+            <div class="demo-info">
+                <strong>Demo-konton:</strong><br />
+                Butiker: ica, coop, willys (lösenord: butiknamn + 123)<br />
+                Restauranger: restaurang1-8 (lösenord: rest123)
+            </div>
+        </div>
+    </div>
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-emoji">🥬</span>
+                    Matsvinn Mullsjö
+                </div>
+                <div class="user-info">
+                    <span class="user-badge" id="userBadge"></span>
+                    <button class="btn btn-outline" id="toggleViewBtn" style="padding: 8px 16px;"></button>
+                    <button class="btn btn-outline" id="logoutBtn" style="padding: 8px 16px;">Logga ut</button>
+                </div>
+            </div>
+        </div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        <!-- Dashboard Container -->
+        <div class="container">
+            <div id="dashboardView" class="dashboard"></div>
+            <div id="profileView" class="dashboard hidden"></div>
+        </div>
+    </div>
 
-        // Storage helpers
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <script>
+        // Storage Helper
         const storage = {
             async get(key) {
                 try {
                     const result = await window.storage.get(key);
                     return result ? JSON.parse(result.value) : null;
                 } catch (error) {
+                    console.log('Key not found or error:', key);
                     return null;
                 }
             },
@@ -521,8 +581,12 @@
             }
         };
 
-        // Initialize demo users
-        const initDemoUsers = async () => {
+        // Global State
+        let currentUser = null;
+        let currentView = 'dashboard';
+
+        // Initialize Demo Users
+        async function initDemoUsers() {
             const existingUsers = await storage.get('users');
             if (!existingUsers) {
                 const demoUsers = {
@@ -540,231 +604,223 @@
                 };
                 await storage.set('users', demoUsers);
             }
-        };
+        }
 
-        // Main App Component
-        function App() {
-            const [currentUser, setCurrentUser] = useState(null);
-            const [view, setView] = useState('login');
-            const [notification, setNotification] = useState(null);
+        // Show Notification
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <h3>${type === 'success' ? '✓ Lyckades!' : '⚠ Observera'}</h3>
+                <p>${message}</p>
+            `;
+            container.appendChild(notification);
+            setTimeout(() => notification.remove(), 4000);
+        }
 
-            useEffect(() => {
-                initDemoUsers();
-            }, []);
-
-            const showNotification = (message, type = 'success') => {
-                setNotification({ message, type });
-                setTimeout(() => setNotification(null), 4000);
-            };
-
-            const handleLogin = (user) => {
-                setCurrentUser(user);
-                setView('dashboard');
-            };
-
-            const handleLogout = () => {
-                setCurrentUser(null);
-                setView('login');
-            };
-
-            if (!currentUser) {
-                return <LoginScreen onLogin={handleLogin} showNotification={showNotification} />;
+        // Login Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const users = await storage.get('users');
+            
+            if (users && users[username] && users[username].password === password) {
+                currentUser = { username, ...users[username] };
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('userBadge').textContent = currentUser.profile.name;
+                updateView();
+            } else {
+                showNotification('Felaktigt användarnamn eller lösenord', 'error');
             }
+        });
 
-            return (
-                <>
-                    <Header user={currentUser} onLogout={handleLogout} onViewChange={setView} currentView={view} />
-                    <div className="container">
-                        {view === 'dashboard' && (
-                            currentUser.type === 'butik' 
-                                ? <StoreDashboard user={currentUser} showNotification={showNotification} />
-                                : <RestaurantDashboard user={currentUser} showNotification={showNotification} />
-                        )}
-                        {view === 'profile' && (
-                            <ProfileView user={currentUser} showNotification={showNotification} />
-                        )}
-                    </div>
-                    {notification && (
-                        <div className={`notification ${notification.type}`}>
-                            <h3>{notification.type === 'success' ? '✓ Lyckades!' : '⚠ Observera'}</h3>
-                            <p>{notification.message}</p>
-                        </div>
-                    )}
-                </>
-            );
-        }
+        // Logout Handler
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            currentView = 'dashboard';
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        });
 
-        // Login Screen
-        function LoginScreen({ onLogin, showNotification }) {
-            const [username, setUsername] = useState('');
-            const [password, setPassword] = useState('');
+        // Toggle View Handler
+        document.getElementById('toggleViewBtn').addEventListener('click', () => {
+            currentView = currentView === 'dashboard' ? 'profile' : 'dashboard';
+            updateView();
+        });
 
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                const users = await storage.get('users');
+        // Update View
+        function updateView() {
+            const toggleBtn = document.getElementById('toggleViewBtn');
+            const dashboardView = document.getElementById('dashboardView');
+            const profileView = document.getElementById('profileView');
+            
+            if (currentView === 'dashboard') {
+                toggleBtn.textContent = '👤 Profil';
+                dashboardView.classList.remove('hidden');
+                profileView.classList.add('hidden');
                 
-                if (users && users[username] && users[username].password === password) {
-                    onLogin({ username, ...users[username] });
+                if (currentUser.type === 'butik') {
+                    renderStoreDashboard();
                 } else {
-                    showNotification('Felaktigt användarnamn eller lösenord', 'error');
+                    renderRestaurantDashboard();
                 }
-            };
-
-            return (
-                <div className="login-container">
-                    <div className="login-box">
-                        <h1><span className="logo-emoji">🥬</span>Matsvinn</h1>
-                        <p className="subtitle">Mullsjö - Minska matsvinnet tillsammans</p>
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Användarnamn</label>
-                                <input 
-                                    type="text" 
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="ica, coop, restaurang1..."
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Lösenord</label>
-                                <input 
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="btn btn-primary">Logga in</button>
-                        </form>
-                        <div style={{ marginTop: '30px', padding: '15px', background: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem', color: '#666' }}>
-                            <strong>Demo-konton:</strong><br />
-                            Butiker: ica, coop, willys (lösenord: butiknamn + 123)<br />
-                            Restauranger: restaurang1-8 (lösenord: rest123)
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // Header Component
-        function Header({ user, onLogout, onViewChange, currentView }) {
-            return (
-                <div className="header">
-                    <div className="header-content">
-                        <div className="logo">
-                            <span className="logo-emoji">🥬</span>
-                            Matsvinn Mullsjö
-                        </div>
-                        <div className="user-info">
-                            <span className="user-badge">{user.profile.name}</span>
-                            <button className="btn btn-outline" onClick={() => onViewChange(currentView === 'dashboard' ? 'profile' : 'dashboard')} style={{ padding: '8px 16px' }}>
-                                {currentView === 'dashboard' ? '👤 Profil' : '🏠 Hem'}
-                            </button>
-                            <button className="btn btn-outline" onClick={onLogout} style={{ padding: '8px 16px' }}>
-                                Logga ut
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
+            } else {
+                toggleBtn.textContent = '🏠 Hem';
+                dashboardView.classList.add('hidden');
+                profileView.classList.remove('hidden');
+                renderProfileView();
+            }
         }
 
         // Store Dashboard
-        function StoreDashboard({ user, showNotification }) {
-            const [offers, setOffers] = useState([]);
-            const [showForm, setShowForm] = useState(false);
-            const [tab, setTab] = useState('active');
+        let storeDashboardInterval;
+        async function renderStoreDashboard() {
+            if (storeDashboardInterval) clearInterval(storeDashboardInterval);
+            
+            let currentTab = 'active';
+            let showForm = false;
 
-            useEffect(() => {
-                loadOffers();
-                const interval = setInterval(loadOffers, 10000); // Update every 10 seconds
-                return () => clearInterval(interval);
-            }, []);
-
-            const loadOffers = async () => {
+            async function loadAndRender() {
                 const keys = await storage.list('offer:');
                 const allOffers = [];
+                
                 for (const key of keys) {
                     const offer = await storage.get(key);
-                    if (offer && offer.storeUsername === user.username) {
+                    if (offer && offer.storeUsername === currentUser.username) {
                         allOffers.push(offer);
                     }
                 }
-                setOffers(allOffers.sort((a, b) => b.createdAt - a.createdAt));
-            };
+                
+                const offers = allOffers.sort((a, b) => b.createdAt - a.createdAt);
+                const activeOffers = offers.filter(o => o.status === 'active');
+                const acceptedOffers = offers.filter(o => o.status === 'accepted');
+                const expiredOffers = offers.filter(o => o.status === 'expired');
 
-            const handleCreateOffer = async (offerData) => {
+                const dashboardView = document.getElementById('dashboardView');
+                dashboardView.innerHTML = `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2>Mina erbjudanden</h2>
+                            <button class="btn btn-secondary" id="toggleFormBtn">
+                                ${showForm ? '✕ Avbryt' : '+ Nytt erbjudande'}
+                            </button>
+                        </div>
+
+                        <div id="offerFormContainer"></div>
+
+                        <div class="tabs">
+                            <button class="tab ${currentTab === 'active' ? 'active' : ''}" data-tab="active">
+                                Aktiva (${activeOffers.length})
+                            </button>
+                            <button class="tab ${currentTab === 'accepted' ? 'active' : ''}" data-tab="accepted">
+                                Accepterade (${acceptedOffers.length})
+                            </button>
+                            <button class="tab ${currentTab === 'expired' ? 'active' : ''}" data-tab="expired">
+                                Utgångna (${expiredOffers.length})
+                            </button>
+                        </div>
+
+                        <div id="offersContainer"></div>
+                    </div>
+                `;
+
+                // Toggle form button
+                document.getElementById('toggleFormBtn').addEventListener('click', () => {
+                    showForm = !showForm;
+                    loadAndRender();
+                });
+
+                // Tab buttons
+                document.querySelectorAll('.tab').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        currentTab = btn.dataset.tab;
+                        loadAndRender();
+                    });
+                });
+
+                // Render form if needed
+                if (showForm) {
+                    renderOfferForm();
+                }
+
+                // Render offers
+                const offersToShow = currentTab === 'active' ? activeOffers :
+                                    currentTab === 'accepted' ? acceptedOffers : expiredOffers;
+                renderOffersList(offersToShow, 'store', currentTab === 'accepted');
+            }
+
+            await loadAndRender();
+            storeDashboardInterval = setInterval(loadAndRender, 10000);
+        }
+
+        // Offer Form
+        function renderOfferForm() {
+            const container = document.getElementById('offerFormContainer');
+            container.innerHTML = `
+                <form id="createOfferForm" style="background: var(--cream); padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div class="form-group">
+                            <label>Produktnamn *</label>
+                            <input type="text" id="produktNamn" placeholder="T.ex. Färsk lax" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Mängd *</label>
+                            <input type="text" id="mängd" placeholder="T.ex. 2 kg" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Pris (kr) *</label>
+                            <input type="number" id="pris" placeholder="50" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Beskrivning (valfritt)</label>
+                        <textarea id="beskrivning" placeholder="Ytterligare information om produkten..." rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Skapa erbjudande</button>
+                </form>
+            `;
+
+            document.getElementById('createOfferForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
                 const offer = {
                     id: 'offer:' + Date.now(),
-                    ...offerData,
-                    storeUsername: user.username,
-                    storeName: user.profile.name,
+                    produktNamn: document.getElementById('produktNamn').value,
+                    mängd: document.getElementById('mängd').value,
+                    pris: document.getElementById('pris').value,
+                    beskrivning: document.getElementById('beskrivning').value,
+                    storeUsername: currentUser.username,
+                    storeName: currentUser.profile.name,
                     createdAt: Date.now(),
-                    expiresAt: Date.now() + (2 * 60 * 60 * 1000), // 2 hours
+                    expiresAt: Date.now() + (2 * 60 * 60 * 1000),
                     status: 'active'
                 };
                 
                 await storage.set(offer.id, offer);
-                setShowForm(false);
-                loadOffers();
                 showNotification('Erbjudande skapat! Restauranger får nu en notifiering.');
-            };
-
-            const activeOffers = offers.filter(o => o.status === 'active');
-            const acceptedOffers = offers.filter(o => o.status === 'accepted');
-            const expiredOffers = offers.filter(o => o.status === 'expired');
-
-            return (
-                <div className="dashboard">
-                    <div className="card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h2>Mina erbjudanden</h2>
-                            <button className="btn btn-secondary" onClick={() => setShowForm(!showForm)}>
-                                {showForm ? '✕ Avbryt' : '+ Nytt erbjudande'}
-                            </button>
-                        </div>
-
-                        {showForm && <CreateOfferForm onSubmit={handleCreateOffer} />}
-
-                        <div className="tabs">
-                            <button className={`tab ${tab === 'active' ? 'active' : ''}`} onClick={() => setTab('active')}>
-                                Aktiva ({activeOffers.length})
-                            </button>
-                            <button className={`tab ${tab === 'accepted' ? 'active' : ''}`} onClick={() => setTab('accepted')}>
-                                Accepterade ({acceptedOffers.length})
-                            </button>
-                            <button className={`tab ${tab === 'expired' ? 'active' : ''}`} onClick={() => setTab('expired')}>
-                                Utgångna ({expiredOffers.length})
-                            </button>
-                        </div>
-
-                        {tab === 'active' && <OffersList offers={activeOffers} type="store" onUpdate={loadOffers} showNotification={showNotification} />}
-                        {tab === 'accepted' && <OffersList offers={acceptedOffers} type="store" showContact={true} />}
-                        {tab === 'expired' && <OffersList offers={expiredOffers} type="store" />}
-                    </div>
-                </div>
-            );
+                renderStoreDashboard();
+            });
         }
 
         // Restaurant Dashboard
-        function RestaurantDashboard({ user, showNotification }) {
-            const [offers, setOffers] = useState([]);
-            const [tab, setTab] = useState('available');
+        let restaurantDashboardInterval;
+        async function renderRestaurantDashboard() {
+            if (restaurantDashboardInterval) clearInterval(restaurantDashboardInterval);
+            
+            let currentTab = 'available';
 
-            useEffect(() => {
-                loadOffers();
-                const interval = setInterval(loadOffers, 5000); // Update every 5 seconds
-                return () => clearInterval(interval);
-            }, []);
-
-            const loadOffers = async () => {
+            async function loadAndRender() {
                 const keys = await storage.list('offer:');
                 const allOffers = [];
+                
                 for (const key of keys) {
                     const offer = await storage.get(key);
                     if (offer) {
-                        // Check if expired
                         if (offer.status === 'active' && Date.now() > offer.expiresAt) {
                             offer.status = 'expired';
                             await storage.set(key, offer);
@@ -772,356 +828,274 @@
                         allOffers.push(offer);
                     }
                 }
-                setOffers(allOffers.sort((a, b) => b.createdAt - a.createdAt));
-            };
+                
+                const offers = allOffers.sort((a, b) => b.createdAt - a.createdAt);
+                const availableOffers = offers.filter(o => o.status === 'active');
+                const myAcceptedOffers = offers.filter(o => o.status === 'accepted' && o.acceptedBy === currentUser.username);
 
-            const handleAccept = async (offer) => {
-                offer.status = 'accepted';
-                offer.acceptedBy = user.username;
-                offer.acceptedByName = user.profile.name;
-                offer.acceptedAt = Date.now();
-                await storage.set(offer.id, offer);
-                loadOffers();
-                showNotification(`Du har accepterat erbjudandet! Kontakta ${offer.storeName} för upphämtning.`);
-            };
-
-            const availableOffers = offers.filter(o => o.status === 'active');
-            const myAcceptedOffers = offers.filter(o => o.status === 'accepted' && o.acceptedBy === user.username);
-
-            return (
-                <div className="dashboard">
-                    <div className="card">
+                const dashboardView = document.getElementById('dashboardView');
+                dashboardView.innerHTML = `
+                    <div class="card">
                         <h2>Tillgängliga erbjudanden</h2>
                         
-                        <div className="tabs">
-                            <button className={`tab ${tab === 'available' ? 'active' : ''}`} onClick={() => setTab('available')}>
-                                Tillgängliga ({availableOffers.length})
+                        <div class="tabs">
+                            <button class="tab ${currentTab === 'available' ? 'active' : ''}" data-tab="available">
+                                Tillgängliga (${availableOffers.length})
                             </button>
-                            <button className={`tab ${tab === 'accepted' ? 'active' : ''}`} onClick={() => setTab('accepted')}>
-                                Mina accepterade ({myAcceptedOffers.length})
+                            <button class="tab ${currentTab === 'accepted' ? 'active' : ''}" data-tab="accepted">
+                                Mina accepterade (${myAcceptedOffers.length})
                             </button>
                         </div>
 
-                        {tab === 'available' && (
-                            <OffersList 
-                                offers={availableOffers} 
-                                type="restaurant" 
-                                onAccept={handleAccept}
-                                showNotification={showNotification}
-                            />
-                        )}
-                        {tab === 'accepted' && (
-                            <OffersList offers={myAcceptedOffers} type="restaurant" showContact={true} />
-                        )}
+                        <div id="offersContainer"></div>
                     </div>
-                </div>
-            );
-        }
+                `;
 
-        // Create Offer Form
-        function CreateOfferForm({ onSubmit }) {
-            const [formData, setFormData] = useState({
-                produktNamn: '',
-                mängd: '',
-                pris: '',
-                beskrivning: ''
-            });
+                document.querySelectorAll('.tab').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        currentTab = btn.dataset.tab;
+                        loadAndRender();
+                    });
+                });
 
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onSubmit(formData);
-                setFormData({ produktNamn: '', mängd: '', pris: '', beskrivning: '' });
-            };
-
-            return (
-                <form onSubmit={handleSubmit} style={{ background: 'var(--cream)', padding: '25px', borderRadius: '16px', marginBottom: '25px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                        <div className="form-group">
-                            <label>Produktnamn *</label>
-                            <input 
-                                type="text" 
-                                value={formData.produktNamn}
-                                onChange={(e) => setFormData({...formData, produktNamn: e.target.value})}
-                                placeholder="T.ex. Färsk lax"
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Mängd *</label>
-                            <input 
-                                type="text" 
-                                value={formData.mängd}
-                                onChange={(e) => setFormData({...formData, mängd: e.target.value})}
-                                placeholder="T.ex. 2 kg"
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Pris (kr) *</label>
-                            <input 
-                                type="number" 
-                                value={formData.pris}
-                                onChange={(e) => setFormData({...formData, pris: e.target.value})}
-                                placeholder="50"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <label>Beskrivning (valfritt)</label>
-                        <textarea 
-                            value={formData.beskrivning}
-                            onChange={(e) => setFormData({...formData, beskrivning: e.target.value})}
-                            placeholder="Ytterligare information om produkten..."
-                            rows="3"
-                        />
-                    </div>
-                    <button type="submit" className="btn btn-primary">Skapa erbjudande</button>
-                </form>
-            );
-        }
-
-        // Offers List
-        function OffersList({ offers, type, onAccept, onUpdate, showContact, showNotification }) {
-            if (offers.length === 0) {
-                return (
-                    <div className="empty-state">
-                        <div className="empty-state-icon">📦</div>
-                        <h3>Inga erbjudanden</h3>
-                        <p>{type === 'store' ? 'Skapa ditt första erbjudande!' : 'Det finns inga tillgängliga erbjudanden just nu.'}</p>
-                    </div>
-                );
+                const offersToShow = currentTab === 'available' ? availableOffers : myAcceptedOffers;
+                renderOffersList(offersToShow, 'restaurant', currentTab === 'accepted');
             }
 
-            return (
-                <div className="offers-grid">
-                    {offers.map(offer => (
-                        <OfferCard 
-                            key={offer.id} 
-                            offer={offer} 
-                            type={type}
-                            onAccept={onAccept}
-                            showContact={showContact}
-                            showNotification={showNotification}
-                        />
-                    ))}
-                </div>
-            );
+            await loadAndRender();
+            restaurantDashboardInterval = setInterval(loadAndRender, 5000);
         }
 
-        // Offer Card
-        function OfferCard({ offer, type, onAccept, showContact, showNotification }) {
-            const [timeLeft, setTimeLeft] = useState('');
+        // Render Offers List
+        function renderOffersList(offers, type, showContact = false) {
+            const container = document.getElementById('offersContainer');
             
-            // Debug logging
-            useEffect(() => {
-                console.log('OfferCard render:', {
-                    offerStatus: offer.status,
-                    type: type,
-                    hasOnAccept: !!onAccept,
-                    shouldShowButton: type === 'restaurant' && offer.status === 'active'
-                });
-            }, [offer.status, type, onAccept]);
+            if (offers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <h3>Inga erbjudanden</h3>
+                        <p>${type === 'store' ? 'Skapa ditt första erbjudande!' : 'Det finns inga tillgängliga erbjudanden just nu.'}</p>
+                    </div>
+                `;
+                return;
+            }
 
-            useEffect(() => {
-                if (offer.status === 'active') {
-                    const updateTimer = () => {
-                        const remaining = offer.expiresAt - Date.now();
-                        if (remaining <= 0) {
-                            setTimeLeft('Utgånget');
-                        } else {
-                            const hours = Math.floor(remaining / (60 * 60 * 1000));
-                            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-                            setTimeLeft(`${hours}h ${minutes}m`);
-                        }
-                    };
-                    updateTimer();
-                    const interval = setInterval(updateTimer, 30000); // Update every 30 seconds
-                    return () => clearInterval(interval);
+            container.innerHTML = '<div class="offers-grid" id="offersGrid"></div>';
+            const grid = document.getElementById('offersGrid');
+            
+            offers.forEach(offer => {
+                const card = createOfferCard(offer, type, showContact);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create Offer Card
+        function createOfferCard(offer, type, showContact) {
+            const card = document.createElement('div');
+            card.className = 'offer-card';
+            
+            let timeLeft = '';
+            let isUrgent = false;
+            
+            if (offer.status === 'active') {
+                const remaining = offer.expiresAt - Date.now();
+                if (remaining <= 0) {
+                    timeLeft = 'Utgånget';
+                } else {
+                    const hours = Math.floor(remaining / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                    timeLeft = `${hours}h ${minutes}m`;
+                    isUrgent = remaining < 30 * 60 * 1000;
                 }
-            }, [offer]);
+            }
 
-            const isUrgent = offer.status === 'active' && (offer.expiresAt - Date.now()) < 30 * 60 * 1000; // Less than 30 minutes
-
-            return (
-                <div className="offer-card">
-                    <div className="offer-header">
-                        <div>
-                            {type === 'restaurant' && <div className="store-badge">{offer.storeName}</div>}
-                            <div className="offer-title">{offer.produktNamn}</div>
-                        </div>
-                        <div className="offer-price">{offer.pris} kr</div>
+            let html = `
+                <div class="offer-header">
+                    <div>
+                        ${type === 'restaurant' ? `<div class="store-badge">${offer.storeName}</div>` : ''}
+                        <div class="offer-title">${offer.produktNamn}</div>
                     </div>
-
-                    <div className="offer-details">
-                        <div className="offer-detail-item">
-                            📦 <strong>Mängd:</strong> {offer.mängd}
-                        </div>
-                        {offer.beskrivning && (
-                            <div className="offer-detail-item">
-                                📝 {offer.beskrivning}
-                            </div>
-                        )}
-                    </div>
-
-                    {offer.status === 'active' && (
-                        <div className={`timer ${isUrgent ? 'urgent' : ''}`}>
-                            ⏱️ {timeLeft} kvar
-                        </div>
-                    )}
-
-                    {offer.status === 'accepted' && (
-                        <div className="status-badge status-accepted">
-                            ✓ Accepterat av {offer.acceptedByName}
-                        </div>
-                    )}
-
-                    {offer.status === 'expired' && (
-                        <div className="status-badge" style={{ background: 'rgba(220, 53, 69, 0.2)', color: '#dc3545' }}>
-                            ⌛ Utgånget
-                        </div>
-                    )}
-
-                    {/* Accept button for restaurants */}
-                    {type === 'restaurant' && offer.status === 'active' && onAccept && (
-                        <button 
-                            className="btn btn-success" 
-                            onClick={() => {
-                                console.log('Accept button clicked for offer:', offer.id);
-                                onAccept(offer);
-                            }}
-                            style={{ width: '100%', marginTop: '10px' }}
-                        >
-                            ✓ Acceptera erbjudande
-                        </button>
-                    )}
-                    
-                    {/* Debug info - remove this later */}
-                    {type === 'restaurant' && offer.status === 'active' && !onAccept && (
-                        <div style={{ padding: '10px', background: '#ffcccc', borderRadius: '8px', marginTop: '10px', fontSize: '0.85rem' }}>
-                            ⚠️ DEBUG: onAccept funktion saknas
-                        </div>
-                    )}
-
-                    {showContact && offer.status === 'accepted' && (
-                        <div className="contact-info">
-                            <strong style={{ display: 'block', marginBottom: '10px', color: 'var(--green-dark)' }}>
-                                📞 Kontaktuppgifter för upphämtning:
-                            </strong>
-                            <div className="contact-info-item">
-                                🏪 <strong>{type === 'restaurant' ? offer.storeName : offer.acceptedByName}</strong>
-                            </div>
-                            {type === 'restaurant' && (
-                                <>
-                                    <div className="contact-info-item">
-                                        📍 Kontakta butiken för upphämtningsdetaljer
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
+                    <div class="offer-price">${offer.pris} kr</div>
                 </div>
-            );
+
+                <div class="offer-details">
+                    <div class="offer-detail-item">
+                        📦 <strong>Mängd:</strong> ${offer.mängd}
+                    </div>
+                    ${offer.beskrivning ? `
+                        <div class="offer-detail-item">
+                            📝 ${offer.beskrivning}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            if (offer.status === 'active' && timeLeft) {
+                html += `
+                    <div class="timer ${isUrgent ? 'urgent' : ''}">
+                        ⏱️ ${timeLeft} kvar
+                    </div>
+                `;
+            }
+
+            if (offer.status === 'accepted') {
+                html += `
+                    <div class="status-badge status-accepted">
+                        ✓ Accepterat av ${offer.acceptedByName}
+                    </div>
+                `;
+            }
+
+            if (offer.status === 'expired') {
+                html += `
+                    <div class="status-badge" style="background: rgba(220, 53, 69, 0.2); color: #dc3545;">
+                        ⌛ Utgånget
+                    </div>
+                `;
+            }
+
+            if (type === 'restaurant' && offer.status === 'active') {
+                html += `
+                    <button class="btn btn-success accept-btn" style="width: 100%; margin-top: 10px;" data-offer-id="${offer.id}">
+                        ✓ Acceptera erbjudande
+                    </button>
+                `;
+            }
+
+            if (showContact && offer.status === 'accepted') {
+                html += `
+                    <div class="contact-info">
+                        <strong style="display: block; margin-bottom: 10px; color: var(--green-dark);">
+                            📞 Kontaktuppgifter för upphämtning:
+                        </strong>
+                        <div class="contact-info-item">
+                            🏪 <strong>${type === 'restaurant' ? offer.storeName : offer.acceptedByName}</strong>
+                        </div>
+                        ${type === 'restaurant' ? `
+                            <div class="contact-info-item">
+                                📍 Kontakta butiken för upphämtningsdetaljer
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            card.innerHTML = html;
+
+            // Accept button handler
+            const acceptBtn = card.querySelector('.accept-btn');
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', async () => {
+                    const offerToAccept = await storage.get(offer.id);
+                    offerToAccept.status = 'accepted';
+                    offerToAccept.acceptedBy = currentUser.username;
+                    offerToAccept.acceptedByName = currentUser.profile.name;
+                    offerToAccept.acceptedAt = Date.now();
+                    await storage.set(offer.id, offerToAccept);
+                    showNotification(`Du har accepterat erbjudandet! Kontakta ${offerToAccept.storeName} för upphämtning.`);
+                    renderRestaurantDashboard();
+                });
+            }
+
+            return card;
         }
 
         // Profile View
-        function ProfileView({ user, showNotification }) {
-            const [profile, setProfile] = useState(user.profile);
-            const [isEditing, setIsEditing] = useState(false);
+        function renderProfileView() {
+            let isEditing = false;
+            let profileData = { ...currentUser.profile };
 
-            const handleSave = async () => {
-                const users = await storage.get('users');
-                users[user.username].profile = profile;
-                await storage.set('users', users);
-                setIsEditing(false);
-                showNotification('Profil uppdaterad!');
-            };
-
-            return (
-                <div className="dashboard">
-                    <div className="card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            function render() {
+                const profileView = document.getElementById('profileView');
+                profileView.innerHTML = `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <h2>Min profil</h2>
-                            {!isEditing ? (
-                                <button className="btn btn-secondary" onClick={() => setIsEditing(true)}>
-                                    ✏️ Redigera
-                                </button>
-                            ) : (
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button className="btn btn-success" onClick={handleSave}>
-                                        ✓ Spara
-                                    </button>
-                                    <button className="btn btn-outline" onClick={() => setIsEditing(false)}>
-                                        Avbryt
-                                    </button>
-                                </div>
-                            )}
+                            <div id="profileActions"></div>
                         </div>
 
-                        <div style={{ maxWidth: '600px' }}>
-                            <div className="form-group">
+                        <div style="max-width: 600px;">
+                            <div class="form-group">
                                 <label>Användarnamn</label>
-                                <input type="text" value={user.username} disabled style={{ background: '#f0f0f0' }} />
+                                <input type="text" value="${currentUser.username}" disabled style="background: #f0f0f0;" />
                             </div>
 
-                            <div className="form-group">
+                            <div class="form-group">
                                 <label>Typ</label>
-                                <input 
-                                    type="text" 
-                                    value={user.type === 'butik' ? 'Livsmedelsbutik' : 'Restaurangkök'} 
-                                    disabled 
-                                    style={{ background: '#f0f0f0' }} 
-                                />
+                                <input type="text" value="${currentUser.type === 'butik' ? 'Livsmedelsbutik' : 'Restaurangkök'}" disabled style="background: #f0f0f0;" />
                             </div>
 
-                            <div className="form-group">
+                            <div class="form-group">
                                 <label>Namn</label>
-                                <input 
-                                    type="text" 
-                                    value={profile.name}
-                                    onChange={(e) => setProfile({...profile, name: e.target.value})}
-                                    disabled={!isEditing}
-                                />
+                                <input type="text" id="profileName" value="${profileData.name}" ${!isEditing ? 'disabled' : ''} />
                             </div>
 
-                            <div className="form-group">
+                            <div class="form-group">
                                 <label>Telefon</label>
-                                <input 
-                                    type="tel" 
-                                    value={profile.phone}
-                                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                                    disabled={!isEditing}
-                                />
+                                <input type="tel" id="profilePhone" value="${profileData.phone}" ${!isEditing ? 'disabled' : ''} />
                             </div>
 
-                            <div className="form-group">
+                            <div class="form-group">
                                 <label>Adress</label>
-                                <input 
-                                    type="text" 
-                                    value={profile.address}
-                                    onChange={(e) => setProfile({...profile, address: e.target.value})}
-                                    disabled={!isEditing}
-                                />
+                                <input type="text" id="profileAddress" value="${profileData.address}" ${!isEditing ? 'disabled' : ''} />
                             </div>
 
-                            <div className="form-group">
+                            <div class="form-group">
                                 <label>E-post</label>
-                                <input 
-                                    type="email" 
-                                    value={profile.email}
-                                    onChange={(e) => setProfile({...profile, email: e.target.value})}
-                                    disabled={!isEditing}
-                                />
+                                <input type="email" id="profileEmail" value="${profileData.email}" ${!isEditing ? 'disabled' : ''} />
                             </div>
                         </div>
                     </div>
-                </div>
-            );
+                `;
+
+                const actionsContainer = document.getElementById('profileActions');
+                
+                if (!isEditing) {
+                    actionsContainer.innerHTML = '<button class="btn btn-secondary" id="editProfileBtn">✏️ Redigera</button>';
+                    document.getElementById('editProfileBtn').addEventListener('click', () => {
+                        isEditing = true;
+                        render();
+                    });
+                } else {
+                    actionsContainer.innerHTML = `
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success" id="saveProfileBtn">✓ Spara</button>
+                            <button class="btn btn-outline" id="cancelProfileBtn">Avbryt</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+                        profileData = {
+                            name: document.getElementById('profileName').value,
+                            phone: document.getElementById('profilePhone').value,
+                            address: document.getElementById('profileAddress').value,
+                            email: document.getElementById('profileEmail').value
+                        };
+                        
+                        const users = await storage.get('users');
+                        users[currentUser.username].profile = profileData;
+                        await storage.set('users', users);
+                        currentUser.profile = profileData;
+                        
+                        isEditing = false;
+                        showNotification('Profil uppdaterad!');
+                        render();
+                    });
+                    
+                    document.getElementById('cancelProfileBtn').addEventListener('click', () => {
+                        isEditing = false;
+                        profileData = { ...currentUser.profile };
+                        render();
+                    });
+                }
+            }
+
+            render();
         }
 
-        // Render App
-        const root = ReactDOM.createRoot(document.getElementById('app'));
-        root.render(<App />);
+        // Initialize App
+        initDemoUsers();
     </script>
 </body>
 </html>
