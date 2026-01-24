@@ -492,30 +492,51 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Storage helpers
+        // Storage helpers (robust wrapper with fallback to localStorage)
         const storage = {
             async get(key) {
                 try {
-                    const result = await window.storage.get(key);
-                    return result ? JSON.parse(result.value) : null;
+                    if (window.storage && typeof window.storage.get === 'function') {
+                        const result = await window.storage.get(key);
+                        if (result == null) return null;
+                        if (typeof result === 'string') return JSON.parse(result);
+                        if (result.value !== undefined) return JSON.parse(result.value);
+                        return result;
+                    }
+                    const raw = localStorage.getItem(key);
+                    return raw ? JSON.parse(raw) : null;
                 } catch (error) {
+                    console.error('Storage.get error:', error);
                     return null;
                 }
             },
             async set(key, value) {
                 try {
-                    await window.storage.set(key, JSON.stringify(value));
+                    if (window.storage && typeof window.storage.set === 'function') {
+                        await window.storage.set(key, JSON.stringify(value));
+                        return true;
+                    }
+                    localStorage.setItem(key, JSON.stringify(value));
                     return true;
                 } catch (error) {
-                    console.error('Storage error:', error);
+                    console.error('Storage.set error:', error);
                     return false;
                 }
             },
-            async list(prefix) {
+            async list(prefix = '') {
                 try {
-                    const result = await window.storage.list(prefix);
-                    return result?.keys || [];
+                    if (window.storage && typeof window.storage.list === 'function') {
+                        const result = await window.storage.list(prefix);
+                        return result?.keys || [];
+                    }
+                    const keys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith(prefix)) keys.push(k);
+                    }
+                    return keys;
                 } catch (error) {
+                    console.error('Storage.list error:', error);
                     return [];
                 }
             }
@@ -585,7 +606,7 @@
                         )}
                     </div>
                     {notification && (
-                        <div className={`notification ${notification.type}`}>
+                        <div className={`notification ${notification.type}`}> 
                             <h3>{notification.type === 'success' ? '✓ Lyckades!' : '⚠ Observera'}</h3>
                             <p>{notification.message}</p>
                         </div>
@@ -955,7 +976,7 @@
                     </div>
 
                     {offer.status === 'active' && (
-                        <div className={`timer ${isUrgent ? 'urgent' : ''}`}>
+                        <div className={`timer ${isUrgent ? 'urgent' : ''}`}> 
                             ⏱️ {timeLeft} kvar
                         </div>
                     )}
@@ -999,108 +1020,63 @@
                             )}
                         </div>
                     )}
+
+                    {type === 'store' && (
+                        <div style={{ marginTop: '12px' }}>
+                            <small style={{ color: 'var(--gray)' }}>ID: {offer.id}</small>
+                        </div>
+                    )}
                 </div>
             );
         }
 
         // Profile View
         function ProfileView({ user, showNotification }) {
-            const [profile, setProfile] = useState(user.profile);
-            const [isEditing, setIsEditing] = useState(false);
+            const [profile, setProfile] = useState(user.profile || {});
+            const [editing, setEditing] = useState(false);
 
             const handleSave = async () => {
-                const users = await storage.get('users');
-                users[user.username].profile = profile;
-                await storage.set('users', users);
-                setIsEditing(false);
-                showNotification('Profil uppdaterad!');
+                // Save profile to users object
+                const users = await storage.get('users') || {};
+                if (users[user.username]) {
+                    users[user.username].profile = profile;
+                    await storage.set('users', users);
+                    showNotification('Profil uppdaterad');
+                    setEditing(false);
+                }
             };
 
             return (
-                <div className="dashboard">
-                    <div className="card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h2>Min profil</h2>
-                            {!isEditing ? (
-                                <button className="btn btn-secondary" onClick={() => setIsEditing(true)}>
-                                    ✏️ Redigera
-                                </button>
-                            ) : (
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button className="btn btn-success" onClick={handleSave}>
-                                        ✓ Spara
-                                    </button>
-                                    <button className="btn btn-outline" onClick={() => setIsEditing(false)}>
-                                        Avbryt
-                                    </button>
-                                </div>
-                            )}
+                <div className="card">
+                    <h2>Min profil</h2>
+                    <div style={{ marginTop: '20px' }}>
+                        <div className="form-group">
+                            <label>Företags-/Namn</label>
+                            <input value={profile.name || ''} onChange={(e) => setProfile({...profile, name: e.target.value})} />
                         </div>
-
-                        <div style={{ maxWidth: '600px' }}>
-                            <div className="form-group">
-                                <label>Användarnamn</label>
-                                <input type="text" value={user.username} disabled style={{ background: '#f0f0f0' }} />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Typ</label>
-                                <input 
-                                    type="text" 
-                                    value={user.type === 'butik' ? 'Livsmedelsbutik' : 'Restaurangkök'} 
-                                    disabled 
-                                    style={{ background: '#f0f0f0' }} 
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Namn</label>
-                                <input 
-                                    type="text" 
-                                    value={profile.name}
-                                    onChange={(e) => setProfile({...profile, name: e.target.value})}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Telefon</label>
-                                <input 
-                                    type="tel" 
-                                    value={profile.phone}
-                                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Adress</label>
-                                <input 
-                                    type="text" 
-                                    value={profile.address}
-                                    onChange={(e) => setProfile({...profile, address: e.target.value})}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>E-post</label>
-                                <input 
-                                    type="email" 
-                                    value={profile.email}
-                                    onChange={(e) => setProfile({...profile, email: e.target.value})}
-                                    disabled={!isEditing}
-                                />
-                            </div>
+                        <div className="form-group">
+                            <label>Telefon</label>
+                            <input value={profile.phone || ''} onChange={(e) => setProfile({...profile, phone: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input value={profile.email || ''} onChange={(e) => setProfile({...profile, email: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Adress</label>
+                            <input value={profile.address || ''} onChange={(e) => setProfile({...profile, address: e.target.value})} />
+                        </div>
+                        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                            <button className="btn btn-primary" onClick={handleSave}>Spara</button>
+                            <button className="btn btn-outline" onClick={() => setEditing(!editing)}>{editing ? 'Avbryt' : 'Redigera'}</button>
                         </div>
                     </div>
                 </div>
             );
         }
 
-        // Render App
-        const root = ReactDOM.createRoot(document.getElementById('app'));
-        root.render(<App />);
+        // Mount App
+        ReactDOM.render(<App />, document.getElementById('app'));
     </script>
 </body>
 </html>
