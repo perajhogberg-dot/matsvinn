@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mullsjö Matsvinn</title>
+  <style>
+    :root{--green-dark:#2d5016;--green:#4a7c2c;--green-light:#7fb069;--orange:#e07a5f;--cream:#f8f4e8;--beige:#e8dcc4;--gray:#666}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'DM Sans',sans-serif;background:linear-gradient(135deg,var(--cream) 0%,var(--beige) 100%);min-height:100vh;color:var(--green-dark)}
+    .container{max-width:1100px;margin:24px auto;padding:16px}
+    .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
+    h1{font-family:serif; color:var(--green); margin-bottom:8px}
+    .login-box{max-width:420px;margin:40px auto;padding:24px}
+    .form-group{margin-bottom:12px}
+    label{display:block;margin-bottom:6px;color:var(--green-dark);font-weight:600}
+    input,textarea,select,button{font-size:15px;padding:10px;border-radius:8px;border:1px solid var(--beige);width:100%}
+    button{cursor:pointer}
+    .btn-primary{background:var(--green);color:#fff;border:none}
+    .btn-secondary{background:var(--orange);color:#fff;border:none}
+    .flex{display:flex;gap:10px;align-items:center}
+    .offers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
+    .offer{background:linear-gradient(135deg,var(--cream),#fff);padding:12px;border-radius:10px;border:1px solid var(--beige)}
+    .offer h3{margin-bottom:8px}
+    .badge{display:inline-block;padding:6px 10px;border-radius:20px;background:var(--green-light);color:#fff;font-weight:700;font-size:13px}
+    .tabs{display:flex;gap:8px;margin-top:8px}
+    .tab{padding:8px 12px;border-radius:8px;border:1px solid var(--beige);cursor:pointer;background:transparent}
+    .tab.active{background:var(--green);color:#fff}
+    .notification{position:fixed;right:18px;top:18px;background:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.12);border-left:6px solid var(--green)}
+    .small{font-size:13px;color:var(--gray)}
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- Content injected by JS -->
+  </div>
+
+  <script>
+    // Simple production-ready app using vanilla JS + localStorage
+    (function(){
+      const APP = {
+        storageKeyUsers: 'matsvinn_users_v1',
+        storageKeyOffers: 'matsvinn_offers_v1',
+
+        init(){
+          this.appEl = document.getElementById('app');
+          this.initDemoUsers();
+          this.routeToLogin();
+        },
+
+        // Demo users
+        initDemoUsers(){
+          try{
+            const raw = localStorage.getItem(this.storageKeyUsers);
+            if(raw) return;
+            const demo = {
+              'ica':{password:'ica123',type:'butik',profile:{name:'ICA Mullsjö',phone:'036-123456',address:'Storgatan 12',email:'ica@mullsjo.se'}},
+              'coop':{password:'coop123',type:'butik',profile:{name:'Coop Mullsjö',phone:'036-123457',address:'Torggatan 5',email:'coop@mullsjo.se'}},
+              'willys':{password:'willys123',type:'butik',profile:{name:'Willys Mullsjö',phone:'036-123458',address:'Industrigatan 8',email:'willys@mullsjo.se'}},
+              'restaurang1':{password:'rest123',type:'restaurang',profile:{name:'Restaurang Sjöviken',phone:'036-234567',address:'Sjögatan 3',email:'info@sjoviken.se'}},
+              'restaurang2':{password:'rest123',type:'restaurang',profile:{name:'Pizzeria Napoli',phone:'036-234568',address:'Centrumgatan 15',email:'napoli@mullsjo.se'}}
+            };
+            localStorage.setItem(this.storageKeyUsers, JSON.stringify(demo));
+          }catch(e){console.error(e)}
+        },
+
+        getUsers(){
+          try{return JSON.parse(localStorage.getItem(this.storageKeyUsers))||{}}catch(e){return{}}
+        },
+        saveUsers(u){localStorage.setItem(this.storageKeyUsers,JSON.stringify(u))},
+
+        getOffers(){
+          try{return JSON.parse(localStorage.getItem(this.storageKeyOffers))||[]}catch(e){return[]}
+        },
+        saveOffers(arr){localStorage.setItem(this.storageKeyOffers,JSON.stringify(arr))},
+
+        notify(msg,timeout=3000){
+          const n = document.createElement('div');n.className='notification card';n.textContent=msg;document.body.appendChild(n);
+          setTimeout(()=>n.remove(),timeout);
+        },
+
+        clear(){this.appEl.innerHTML=''},
+        routeToLogin(){
+          this.currentUser = null;this.clear();
+          const box = document.createElement('div');box.className='card login-box';
+          box.innerHTML=`<h1>Matsvinn</h1><p class="small">Mullsjö - Minska matsvinnet tillsammans</p>`;
+          const form = document.createElement('form');
+          form.innerHTML=`<div class="form-group"><label>Användarnamn</label><input name="username" required></div><div class="form-group"><label>Lösenord</label><input name="password" type="password" required></div><button class="btn-primary">Logga in</button><div class="small" style="margin-top:12px">Demo: butik: ica/ica123 coop/coop123 willys/willys123 · restaurang: restaurang1/rest123</div>`;
+          form.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(form);const u=f.get('username').trim();const p=f.get('password');const users=this.getUsers();if(users[u] && users[u].password===p){this.currentUser={username:u,...users[u]};this.routeToDashboard();}else{this.notify('Felaktigt användarnamn eller lösenord',3000)}});
+          box.appendChild(form);this.appEl.appendChild(box);
+        },
+
+        routeToDashboard(){
+          this.clear();
+          const header = document.createElement('div');header.className='card';
+          header.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><h1>Matsvinn Mullsjö</h1><div class="small">Inloggad som <strong>${this.currentUser.profile.name}</strong></div></div><div style="display:flex;gap:8px"><button id="btnView" class="tab">Profil</button><button id="btnLogout" class="tab">Logga ut</button></div></div>`;
+          this.appEl.appendChild(header);
+          document.getElementById('btnLogout').addEventListener('click',()=>{this.routeToLogin()});
+          document.getElementById('btnView').addEventListener('click',()=>this.showProfile());
+
+          if(this.currentUser.type==='butik') this.renderStoreDashboard(); else this.renderRestaurantDashboard();
+        },
+
+        renderStoreDashboard(){
+          const card=document.createElement('div');card.className='card';
+          const createBtn=document.createElement('button');createBtn.className='btn-secondary';createBtn.textContent='+ Nytt erbjudande';
+          const container=document.createElement('div');container.innerHTML=`<h2>Mina erbjudanden</h2>`;
+          card.appendChild(container);card.appendChild(createBtn);this.appEl.appendChild(card);
+
+          createBtn.addEventListener('click',()=>this.showCreateOfferForm(this.currentUser,()=>this.renderOffersListStore()))
+          this.renderOffersListStore();
+        },
+
+        renderOffersListStore(){
+          const old = this.appEl.querySelector('.offers-grid'); if(old) old.remove();
+          const offers = this.getOffers().filter(o=>o.storeUsername===this.currentUser.username).sort((a,b)=>b.createdAt-a.createdAt);
+          const grid = document.createElement('div');grid.className='offers-grid';
+          if(offers.length===0){const empty=document.createElement('div');empty.className='card';empty.innerHTML='<p>Inga erbjudanden. Skapa ditt första erbjudande!</p>';grid.appendChild(empty)}
+          offers.forEach(o=>grid.appendChild(this.domForOffer(o,this.currentUser.type)));
+          this.appEl.appendChild(grid);
+        },
+
+        renderRestaurantDashboard(){
+          const card=document.createElement('div');card.className='card';card.innerHTML=`<h2>Tillgängliga erbjudanden</h2>`;
+          this.appEl.appendChild(card);
+          this.renderOffersListRestaurant();
+        },
+
+        renderOffersListRestaurant(){
+          const old = this.appEl.querySelector('.offers-grid'); if(old) old.remove();
+          const offers = this.getOffers().filter(o=>o.status==='active' || (o.status==='accepted' && o.acceptedBy===this.currentUser.username)).sort((a,b)=>b.createdAt-a.createdAt);
+          const grid = document.createElement('div');grid.className='offers-grid';
+          if(offers.length===0){const empty=document.createElement('div');empty.className='card';empty.innerHTML='<p>Inga erbjudanden just nu.</p>';grid.appendChild(empty)}
+          offers.forEach(o=>grid.appendChild(this.domForOffer(o,this.currentUser.type)));
+          this.appEl.appendChild(grid);
+        },
+
+        showCreateOfferForm(user,onDone){
+          const modal = document.createElement('div');modal.className='card';modal.style.marginTop='12px';
+          modal.innerHTML=`<h3>Skapa erbjudande</h3>`;
+          const form = document.createElement('form');form.innerHTML=`<div class="form-group"><label>Produkt</label><input name="produkt" required></div><div class="form-group"><label>Mängd</label><input name="mangd" required></div><div class="form-group"><label>Pris (kr)</label><input name="pris" type="number" required></div><div class="form-group"><label>Beskrivning</label><textarea name="beskrivning"></textarea></div><div style="display:flex;gap:8px"><button class="btn-primary">Skapa</button><button type="button" id="btnCancel" class="tab">Avbryt</button></div>`;
+          form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);const offer={id:'offer:'+Date.now(),produktNamn:fd.get('produkt'),mängd:fd.get('mangd'),pris:fd.get('pris'),beskrivning:fd.get('beskrivning'),storeUsername:user.username,storeName:user.profile.name,createdAt:Date.now(),expiresAt:Date.now()+2*60*60*1000,status:'active'};const arr=this.getOffers();arr.push(offer);this.saveOffers(arr);modal.remove();this.notify('Erbjudande skapat');if(onDone)onDone();});
+          modal.appendChild(form);this.appEl.insertBefore(modal,this.appEl.children[1]||null);
+          modal.querySelector('#btnCancel').addEventListener('click',()=>modal.remove());
+        },
+
+        domForOffer(o,currentType){
+          const el=document.createElement('div');el.className='offer';
+          const title = document.createElement('h3');title.textContent=o.produktNamn+' — '+o.pris+' kr';el.appendChild(title);
+          const meta=document.createElement('div');meta.className='small';meta.innerHTML=`<div>📦 <strong>Mängd:</strong> ${o.mängd}</div><div style="margin-top:6px">Skapad av: <span class="badge">${o.storeName}</span></div>`;el.appendChild(meta);
+          const desc = document.createElement('p');desc.className='small';desc.style.marginTop='8px';desc.textContent=o.beskrivning||'';el.appendChild(desc);
+          if(o.status==='active'){
+            const remaining = o.expiresAt - Date.now();
+            const rem = document.createElement('div');rem.className='small';rem.style.marginTop='8px';rem.textContent='⏱️ '+this.formatRemaining(remaining)+' kvar';el.appendChild(rem);
+          }
+          if(o.status==='accepted'){
+            const status=document.createElement('div');status.className='small';status.style.marginTop='8px';status.textContent='✓ Accepterat av '+(o.acceptedByName||o.acceptedBy);el.appendChild(status);
+            if(currentType==='restaurant' || currentType==='store'){
+              const contact=document.createElement('div');contact.className='small';contact.style.marginTop='8px';contact.textContent='Kontakt: '+(currentType==='restaurant' ? o.storeName : (o.acceptedByName||o.acceptedBy));el.appendChild(contact);
+            }
+          }
+
+          if(o.status==='active' && currentType==='restaurant'){
+            const btn=document.createElement('button');btn.className='btn-primary';btn.style.marginTop='10px';btn.textContent='✓ Acceptera erbjudande';
+            btn.addEventListener('click',()=>{this.acceptOffer(o.id)});
+            el.appendChild(btn);
+          }
+
+          if(currentType==='store'){
+            const idEl=document.createElement('div');idEl.className='small';idEl.style.marginTop='8px';idEl.textContent='ID: '+o.id;el.appendChild(idEl);
+          }
+
+          return el;
+        },
+
+        formatRemaining(ms){if(ms<=0) return 'Utgånget';const h=Math.floor(ms/(3600000));const m=Math.floor((ms%3600000)/60000);return h+'h '+m+'m'},
+
+        acceptOffer(id){
+          const arr=this.getOffers();const o=arr.find(x=>x.id===id);if(!o) return; if(o.status!=='active'){this.notify('Erbjudandet är redan accepterat eller utgånget');return}
+          o.status='accepted';o.acceptedBy=this.currentUser.username;o.acceptedByName=this.currentUser.profile.name;o.acceptedAt=Date.now();this.saveOffers(arr);this.notify('Erbjudande accepterat — kontakta butiken för upphämtning');this.renderOffersListRestaurant();
+        },
+
+        showProfile(){
+          const existing = this.appEl.querySelector('.card.profile'); if(existing) existing.remove();
+          const card=document.createElement('div');card.className='card profile';card.innerHTML=`<h2>Min profil</h2>`;
+          const users=this.getUsers();const me=users[this.currentUser.username]||{}; const profile=me.profile||{};
+          const form=document.createElement('form');form.innerHTML=`<div class="form-group"><label>Namn</label><input name="name" value="${this.escape(profile.name||'')}"></div><div class="form-group"><label>Telefon</label><input name="phone" value="${this.escape(profile.phone||'')}"></div><div class="form-group"><label>Email</label><input name="email" value="${this.escape(profile.email||'')}"></div><div class="form-group"><label>Adress</label><input name="address" value="${this.escape(profile.address||'')}"></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary">Spara</button><button type="button" class="tab" id="btnCloseProfile">Stäng</button></div>`;
+          form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);users[this.currentUser.username].profile={name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),address:fd.get('address')};this.saveUsers(users);this.currentUser=Object.assign({},this.currentUser,users[this.currentUser.username]);this.notify('Profil uppdaterad');card.remove();});
+          card.appendChild(form);this.appEl.insertBefore(card,this.appEl.children[2]||null);
+          card.querySelector('#btnCloseProfile').addEventListener('click',()=>card.remove());
+        },
+
+        escape(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')},
+
+        // Periodic housekeeping to expire offers
+        startExpiryLoop(){
+          if(this._expiryStarted) return;this._expiryStarted=true;setInterval(()=>{let changed=false;const offers=this.getOffers();for(const o of offers){if(o.status==='active' && Date.now()>o.expiresAt){o.status='expired';changed=true}} if(changed)this.saveOffers(offers)},30000);
+        }
+      };
+
+      APP.init();APP.startExpiryLoop();
+      // expose for debugging (optional)
+      window.MATSVINN_APP = APP;
+    })();
+  </script>
+</body>
+</html>
