@@ -1,1082 +1,207 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mullsjö Matsvinn</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --green-dark: #2d5016;
-            --green: #4a7c2c;
-            --green-light: #7fb069;
-            --orange: #e07a5f;
-            --orange-light: #f4a582;
-            --cream: #f8f4e8;
-            --beige: #e8dcc4;
-            --gray: #666;
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
-            min-height: 100vh;
-            color: var(--green-dark);
-        }
-
-        h1, h2, h3 {
-            font-family: 'Fraunces', serif;
-            color: var(--green-dark);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Login Screen */
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .login-box {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 24px;
-            box-shadow: var(--shadow-lg);
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .login-box h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            color: var(--green);
-        }
-
-        .login-box .subtitle {
-            color: var(--gray);
-            margin-bottom: 40px;
-            font-size: 0.95rem;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--green-dark);
-            font-size: 0.9rem;
-        }
-
-        .form-group input, 
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid var(--beige);
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.3s ease;
-            background: var(--cream);
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--green-light);
-            background: white;
-        }
-
-        .btn {
-            padding: 14px 32px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'DM Sans', sans-serif;
-        }
-
-        .btn-primary {
-            background: var(--green);
-            color: white;
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            background: var(--green-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .btn-secondary {
-            background: var(--orange);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #d66851;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--green);
-            border: 2px solid var(--green);
-        }
-
-        .btn-outline:hover {
-            background: var(--green);
-            color: white;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--green-light);
-            color: white;
-        }
-
-        /* Header */
-        .header {
-            background: white;
-            padding: 20px 0;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-family: 'Fraunces', serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--green);
-        }
-
-        .logo-emoji {
-            font-size: 1.8rem;
-            margin-right: 8px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-badge {
-            background: var(--green-light);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* Dashboard */
-        .dashboard {
-            display: grid;
-            gap: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .card h2 {
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-        }
-
-        /* Offers Grid */
-        .offers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .offer-card {
-            background: linear-gradient(135deg, var(--cream) 0%, white 100%);
-            border: 2px solid var(--beige);
-            border-radius: 16px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .offer-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--green-light);
-        }
-
-        .offer-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--green), var(--green-light));
-        }
-
-        .offer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .offer-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--green-dark);
-            margin-bottom: 5px;
-        }
-
-        .offer-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--orange);
-        }
-
-        .offer-details {
-            margin: 15px 0;
-            color: var(--gray);
-        }
-
-        .offer-detail-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .timer {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px;
-            background: rgba(224, 122, 95, 0.1);
-            border-radius: 8px;
-            margin: 15px 0;
-            font-weight: 500;
-            color: var(--orange);
-        }
-
-        .timer.urgent {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-        }
-
-        .store-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background: var(--green-light);
-            color: white;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 20px 24px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            border-left: 4px solid var(--green);
-            max-width: 350px;
-            animation: slideIn 0.4s ease;
-            z-index: 1000;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .notification.success {
-            border-left-color: var(--green-light);
-        }
-
-        .notification.error {
-            border-left-color: #dc3545;
-        }
-
-        .notification h3 {
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-        }
-
-        .notification p {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--gray);
-        }
-
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            color: var(--gray);
-            margin-bottom: 10px;
-        }
-
-        .contact-info {
-            background: var(--cream);
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-        }
-
-        .contact-info-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: var(--green-dark);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .status-accepted {
-            background: rgba(127, 176, 105, 0.2);
-            color: var(--green-dark);
-        }
-
-        .status-active {
-            background: rgba(224, 122, 95, 0.2);
-            color: var(--orange);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--beige);
-        }
-
-        .tab {
-            padding: 12px 24px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--gray);
-            position: relative;
-            transition: all 0.3s ease;
-            font-family: 'DM Sans', sans-serif;
-        }
-
-        .tab.active {
-            color: var(--green);
-        }
-
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--green);
-        }
-
-        @media (max-width: 768px) {
-            .offers-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header-content {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-
-            .user-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .card {
-                padding: 20px;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mullsjö Matsvinn</title>
+  <style>
+    :root{--green-dark:#2d5016;--green:#4a7c2c;--green-light:#7fb069;--orange:#e07a5f;--cream:#f8f4e8;--beige:#e8dcc4;--gray:#666}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'DM Sans',sans-serif;background:linear-gradient(135deg,var(--cream) 0%,var(--beige) 100%);min-height:100vh;color:var(--green-dark)}
+    .container{max-width:1100px;margin:24px auto;padding:16px}
+    .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
+    h1{font-family:serif; color:var(--green); margin-bottom:8px}
+    .login-box{max-width:420px;margin:40px auto;padding:24px}
+    .form-group{margin-bottom:12px}
+    label{display:block;margin-bottom:6px;color:var(--green-dark);font-weight:600}
+    input,textarea,select,button{font-size:15px;padding:10px;border-radius:8px;border:1px solid var(--beige);width:100%}
+    button{cursor:pointer}
+    .btn-primary{background:var(--green);color:#fff;border:none}
+    .btn-secondary{background:var(--orange);color:#fff;border:none}
+    .flex{display:flex;gap:10px;align-items:center}
+    .offers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
+    .offer{background:linear-gradient(135deg,var(--cream),#fff);padding:12px;border-radius:10px;border:1px solid var(--beige)}
+    .offer h3{margin-bottom:8px}
+    .badge{display:inline-block;padding:6px 10px;border-radius:20px;background:var(--green-light);color:#fff;font-weight:700;font-size:13px}
+    .tabs{display:flex;gap:8px;margin-top:8px}
+    .tab{padding:8px 12px;border-radius:8px;border:1px solid var(--beige);cursor:pointer;background:transparent}
+    .tab.active{background:var(--green);color:#fff}
+    .notification{position:fixed;right:18px;top:18px;background:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.12);border-left:6px solid var(--green)}
+    .small{font-size:13px;color:var(--gray)}
+  </style>
 </head>
 <body>
-    <div id="app"></div>
+  <div class="container" id="app">
+    <!-- Content injected by JS -->
+  </div>
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    // Simple production-ready app using vanilla JS + localStorage
+    (function(){
+      const APP = {
+        storageKeyUsers: 'matsvinn_users_v1',
+        storageKeyOffers: 'matsvinn_offers_v1',
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        init(){
+          this.appEl = document.getElementById('app');
+          this.initDemoUsers();
+          this.routeToLogin();
+        },
 
-        // Storage helpers (robust wrapper with fallback to localStorage)
-        const storage = {
-            async get(key) {
-                try {
-                    if (window.storage && typeof window.storage.get === 'function') {
-                        const result = await window.storage.get(key);
-                        if (result == null) return null;
-                        if (typeof result === 'string') return JSON.parse(result);
-                        if (result.value !== undefined) return JSON.parse(result.value);
-                        return result;
-                    }
-                    const raw = localStorage.getItem(key);
-                    return raw ? JSON.parse(raw) : null;
-                } catch (error) {
-                    console.error('Storage.get error:', error);
-                    return null;
-                }
-            },
-            async set(key, value) {
-                try {
-                    if (window.storage && typeof window.storage.set === 'function') {
-                        await window.storage.set(key, JSON.stringify(value));
-                        return true;
-                    }
-                    localStorage.setItem(key, JSON.stringify(value));
-                    return true;
-                } catch (error) {
-                    console.error('Storage.set error:', error);
-                    return false;
-                }
-            },
-            async list(prefix = '') {
-                try {
-                    if (window.storage && typeof window.storage.list === 'function') {
-                        const result = await window.storage.list(prefix);
-                        return result?.keys || [];
-                    }
-                    const keys = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (k && k.startsWith(prefix)) keys.push(k);
-                    }
-                    return keys;
-                } catch (error) {
-                    console.error('Storage.list error:', error);
-                    return [];
-                }
+        // Demo users
+        initDemoUsers(){
+          try{
+            const raw = localStorage.getItem(this.storageKeyUsers);
+            if(raw) return;
+            const demo = {
+              'ica':{password:'ica123',type:'butik',profile:{name:'ICA Mullsjö',phone:'036-123456',address:'Storgatan 12',email:'ica@mullsjo.se'}},
+              'coop':{password:'coop123',type:'butik',profile:{name:'Coop Mullsjö',phone:'036-123457',address:'Torggatan 5',email:'coop@mullsjo.se'}},
+              'willys':{password:'willys123',type:'butik',profile:{name:'Willys Mullsjö',phone:'036-123458',address:'Industrigatan 8',email:'willys@mullsjo.se'}},
+              'restaurang1':{password:'rest123',type:'restaurang',profile:{name:'Restaurang Sjöviken',phone:'036-234567',address:'Sjögatan 3',email:'info@sjoviken.se'}},
+              'restaurang2':{password:'rest123',type:'restaurang',profile:{name:'Pizzeria Napoli',phone:'036-234568',address:'Centrumgatan 15',email:'napoli@mullsjo.se'}}
+            };
+            localStorage.setItem(this.storageKeyUsers, JSON.stringify(demo));
+          }catch(e){console.error(e)}
+        },
+
+        getUsers(){
+          try{return JSON.parse(localStorage.getItem(this.storageKeyUsers))||{}}catch(e){return{}}
+        },
+        saveUsers(u){localStorage.setItem(this.storageKeyUsers,JSON.stringify(u))},
+
+        getOffers(){
+          try{return JSON.parse(localStorage.getItem(this.storageKeyOffers))||[]}catch(e){return[]}
+        },
+        saveOffers(arr){localStorage.setItem(this.storageKeyOffers,JSON.stringify(arr))},
+
+        notify(msg,timeout=3000){
+          const n = document.createElement('div');n.className='notification card';n.textContent=msg;document.body.appendChild(n);
+          setTimeout(()=>n.remove(),timeout);
+        },
+
+        clear(){this.appEl.innerHTML=''},
+        routeToLogin(){
+          this.currentUser = null;this.clear();
+          const box = document.createElement('div');box.className='card login-box';
+          box.innerHTML=`<h1>Matsvinn</h1><p class="small">Mullsjö - Minska matsvinnet tillsammans</p>`;
+          const form = document.createElement('form');
+          form.innerHTML=`<div class="form-group"><label>Användarnamn</label><input name="username" required></div><div class="form-group"><label>Lösenord</label><input name="password" type="password" required></div><button class="btn-primary">Logga in</button><div class="small" style="margin-top:12px">Demo: butik: ica/ica123 coop/coop123 willys/willys123 · restaurang: restaurang1/rest123</div>`;
+          form.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(form);const u=f.get('username').trim();const p=f.get('password');const users=this.getUsers();if(users[u] && users[u].password===p){this.currentUser={username:u,...users[u]};this.routeToDashboard();}else{this.notify('Felaktigt användarnamn eller lösenord',3000)}});
+          box.appendChild(form);this.appEl.appendChild(box);
+        },
+
+        routeToDashboard(){
+          this.clear();
+          const header = document.createElement('div');header.className='card';
+          header.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><h1>Matsvinn Mullsjö</h1><div class="small">Inloggad som <strong>${this.currentUser.profile.name}</strong></div></div><div style="display:flex;gap:8px"><button id="btnView" class="tab">Profil</button><button id="btnLogout" class="tab">Logga ut</button></div></div>`;
+          this.appEl.appendChild(header);
+          document.getElementById('btnLogout').addEventListener('click',()=>{this.routeToLogin()});
+          document.getElementById('btnView').addEventListener('click',()=>this.showProfile());
+
+          if(this.currentUser.type==='butik') this.renderStoreDashboard(); else this.renderRestaurantDashboard();
+        },
+
+        renderStoreDashboard(){
+          const card=document.createElement('div');card.className='card';
+          const createBtn=document.createElement('button');createBtn.className='btn-secondary';createBtn.textContent='+ Nytt erbjudande';
+          const container=document.createElement('div');container.innerHTML=`<h2>Mina erbjudanden</h2>`;
+          card.appendChild(container);card.appendChild(createBtn);this.appEl.appendChild(card);
+
+          createBtn.addEventListener('click',()=>this.showCreateOfferForm(this.currentUser,()=>this.renderOffersListStore()))
+          this.renderOffersListStore();
+        },
+
+        renderOffersListStore(){
+          const old = this.appEl.querySelector('.offers-grid'); if(old) old.remove();
+          const offers = this.getOffers().filter(o=>o.storeUsername===this.currentUser.username).sort((a,b)=>b.createdAt-a.createdAt);
+          const grid = document.createElement('div');grid.className='offers-grid';
+          if(offers.length===0){const empty=document.createElement('div');empty.className='card';empty.innerHTML='<p>Inga erbjudanden. Skapa ditt första erbjudande!</p>';grid.appendChild(empty)}
+          offers.forEach(o=>grid.appendChild(this.domForOffer(o,this.currentUser.type)));
+          this.appEl.appendChild(grid);
+        },
+
+        renderRestaurantDashboard(){
+          const card=document.createElement('div');card.className='card';card.innerHTML=`<h2>Tillgängliga erbjudanden</h2>`;
+          this.appEl.appendChild(card);
+          this.renderOffersListRestaurant();
+        },
+
+        renderOffersListRestaurant(){
+          const old = this.appEl.querySelector('.offers-grid'); if(old) old.remove();
+          const offers = this.getOffers().filter(o=>o.status==='active' || (o.status==='accepted' && o.acceptedBy===this.currentUser.username)).sort((a,b)=>b.createdAt-a.createdAt);
+          const grid = document.createElement('div');grid.className='offers-grid';
+          if(offers.length===0){const empty=document.createElement('div');empty.className='card';empty.innerHTML='<p>Inga erbjudanden just nu.</p>';grid.appendChild(empty)}
+          offers.forEach(o=>grid.appendChild(this.domForOffer(o,this.currentUser.type)));
+          this.appEl.appendChild(grid);
+        },
+
+        showCreateOfferForm(user,onDone){
+          const modal = document.createElement('div');modal.className='card';modal.style.marginTop='12px';
+          modal.innerHTML=`<h3>Skapa erbjudande</h3>`;
+          const form = document.createElement('form');form.innerHTML=`<div class="form-group"><label>Produkt</label><input name="produkt" required></div><div class="form-group"><label>Mängd</label><input name="mangd" required></div><div class="form-group"><label>Pris (kr)</label><input name="pris" type="number" required></div><div class="form-group"><label>Beskrivning</label><textarea name="beskrivning"></textarea></div><div style="display:flex;gap:8px"><button class="btn-primary">Skapa</button><button type="button" id="btnCancel" class="tab">Avbryt</button></div>`;
+          form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);const offer={id:'offer:'+Date.now(),produktNamn:fd.get('produkt'),mängd:fd.get('mangd'),pris:fd.get('pris'),beskrivning:fd.get('beskrivning'),storeUsername:user.username,storeName:user.profile.name,createdAt:Date.now(),expiresAt:Date.now()+2*60*60*1000,status:'active'};const arr=this.getOffers();arr.push(offer);this.saveOffers(arr);modal.remove();this.notify('Erbjudande skapat');if(onDone)onDone();});
+          modal.appendChild(form);this.appEl.insertBefore(modal,this.appEl.children[1]||null);
+          modal.querySelector('#btnCancel').addEventListener('click',()=>modal.remove());
+        },
+
+        domForOffer(o,currentType){
+          const el=document.createElement('div');el.className='offer';
+          const title = document.createElement('h3');title.textContent=o.produktNamn+' — '+o.pris+' kr';el.appendChild(title);
+          const meta=document.createElement('div');meta.className='small';meta.innerHTML=`<div>📦 <strong>Mängd:</strong> ${o.mängd}</div><div style="margin-top:6px">Skapad av: <span class="badge">${o.storeName}</span></div>`;el.appendChild(meta);
+          const desc = document.createElement('p');desc.className='small';desc.style.marginTop='8px';desc.textContent=o.beskrivning||'';el.appendChild(desc);
+          if(o.status==='active'){
+            const remaining = o.expiresAt - Date.now();
+            const rem = document.createElement('div');rem.className='small';rem.style.marginTop='8px';rem.textContent='⏱️ '+this.formatRemaining(remaining)+' kvar';el.appendChild(rem);
+          }
+          if(o.status==='accepted'){
+            const status=document.createElement('div');status.className='small';status.style.marginTop='8px';status.textContent='✓ Accepterat av '+(o.acceptedByName||o.acceptedBy);el.appendChild(status);
+            if(currentType==='restaurant' || currentType==='store'){
+              const contact=document.createElement('div');contact.className='small';contact.style.marginTop='8px';contact.textContent='Kontakt: '+(currentType==='restaurant' ? o.storeName : (o.acceptedByName||o.acceptedBy));el.appendChild(contact);
             }
-        };
+          }
 
-        // Initialize demo users
-        const initDemoUsers = async () => {
-            const existingUsers = await storage.get('users');
-            if (!existingUsers) {
-                const demoUsers = {
-                    'ica': { password: 'ica123', type: 'butik', profile: { name: 'ICA Mullsjö', phone: '036-123 45 67', address: 'Storgatan 12', email: 'ica@mullsjo.se' } },
-                    'coop': { password: 'coop123', type: 'butik', profile: { name: 'Coop Mullsjö', phone: '036-123 45 68', address: 'Torggatan 5', email: 'coop@mullsjo.se' } },
-                    'willys': { password: 'willys123', type: 'butik', profile: { name: 'Willys Mullsjö', phone: '036-123 45 69', address: 'Industrigatan 8', email: 'willys@mullsjo.se' } },
-                    'restaurang1': { password: 'rest123', type: 'restaurang', profile: { name: 'Restaurang Sjöviken', phone: '036-234 56 78', address: 'Sjögatan 3', email: 'info@sjoviken.se' } },
-                    'restaurang2': { password: 'rest123', type: 'restaurang', profile: { name: 'Pizzeria Napoli', phone: '036-234 56 79', address: 'Centrumgatan 15', email: 'napoli@mullsjo.se' } },
-                    'restaurang3': { password: 'rest123', type: 'restaurang', profile: { name: 'Kinarestaurangen', phone: '036-234 56 80', address: 'Storgatan 22', email: 'info@kinarestaurangen.se' } },
-                    'restaurang4': { password: 'rest123', type: 'restaurang', profile: { name: 'Café Bageriet', phone: '036-234 56 81', address: 'Torggatan 8', email: 'cafe@bageriet.se' } },
-                    'restaurang5': { password: 'rest123', type: 'restaurang', profile: { name: 'Mullsjö Hotell & Restaurang', phone: '036-234 56 82', address: 'Hotellvägen 1', email: 'info@mullsjohotell.se' } },
-                    'restaurang6': { password: 'rest123', type: 'restaurang', profile: { name: 'Grillbaren', phone: '036-234 56 83', address: 'Industrivägen 12', email: 'info@grillbaren.se' } },
-                    'restaurang7': { password: 'rest123', type: 'restaurang', profile: { name: 'Thai Kitchen', phone: '036-234 56 84', address: 'Storgatan 45', email: 'thai@mullsjo.se' } },
-                    'restaurang8': { password: 'rest123', type: 'restaurang', profile: { name: 'Skolan Matsalar', phone: '036-234 56 85', address: 'Skolvägen 5', email: 'matsal@skolan.se' } }
-                };
-                await storage.set('users', demoUsers);
-            }
-        };
+          if(o.status==='active' && currentType==='restaurant'){
+            const btn=document.createElement('button');btn.className='btn-primary';btn.style.marginTop='10px';btn.textContent='✓ Acceptera erbjudande';
+            btn.addEventListener('click',()=>{this.acceptOffer(o.id)});
+            el.appendChild(btn);
+          }
 
-        // Main App Component
-        function App() {
-            const [currentUser, setCurrentUser] = useState(null);
-            const [view, setView] = useState('login');
-            const [notification, setNotification] = useState(null);
+          if(currentType==='store'){
+            const idEl=document.createElement('div');idEl.className='small';idEl.style.marginTop='8px';idEl.textContent='ID: '+o.id;el.appendChild(idEl);
+          }
 
-            useEffect(() => {
-                initDemoUsers();
-            }, []);
+          return el;
+        },
 
-            const showNotification = (message, type = 'success') => {
-                setNotification({ message, type });
-                setTimeout(() => setNotification(null), 4000);
-            };
+        formatRemaining(ms){if(ms<=0) return 'Utgånget';const h=Math.floor(ms/(3600000));const m=Math.floor((ms%3600000)/60000);return h+'h '+m+'m'},
 
-            const handleLogin = (user) => {
-                setCurrentUser(user);
-                setView('dashboard');
-            };
+        acceptOffer(id){
+          const arr=this.getOffers();const o=arr.find(x=>x.id===id);if(!o) return; if(o.status!=='active'){this.notify('Erbjudandet är redan accepterat eller utgånget');return}
+          o.status='accepted';o.acceptedBy=this.currentUser.username;o.acceptedByName=this.currentUser.profile.name;o.acceptedAt=Date.now();this.saveOffers(arr);this.notify('Erbjudande accepterat — kontakta butiken för upphämtning');this.renderOffersListRestaurant();
+        },
 
-            const handleLogout = () => {
-                setCurrentUser(null);
-                setView('login');
-            };
+        showProfile(){
+          const existing = this.appEl.querySelector('.card.profile'); if(existing) existing.remove();
+          const card=document.createElement('div');card.className='card profile';card.innerHTML=`<h2>Min profil</h2>`;
+          const users=this.getUsers();const me=users[this.currentUser.username]||{}; const profile=me.profile||{};
+          const form=document.createElement('form');form.innerHTML=`<div class="form-group"><label>Namn</label><input name="name" value="${this.escape(profile.name||'')}"></div><div class="form-group"><label>Telefon</label><input name="phone" value="${this.escape(profile.phone||'')}"></div><div class="form-group"><label>Email</label><input name="email" value="${this.escape(profile.email||'')}"></div><div class="form-group"><label>Adress</label><input name="address" value="${this.escape(profile.address||'')}"></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary">Spara</button><button type="button" class="tab" id="btnCloseProfile">Stäng</button></div>`;
+          form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);users[this.currentUser.username].profile={name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),address:fd.get('address')};this.saveUsers(users);this.currentUser=Object.assign({},this.currentUser,users[this.currentUser.username]);this.notify('Profil uppdaterad');card.remove();});
+          card.appendChild(form);this.appEl.insertBefore(card,this.appEl.children[2]||null);
+          card.querySelector('#btnCloseProfile').addEventListener('click',()=>card.remove());
+        },
 
-            if (!currentUser) {
-                return <LoginScreen onLogin={handleLogin} showNotification={showNotification} />;
-            }
+        escape(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')},
 
-            return (
-                <>
-                    <Header user={currentUser} onLogout={handleLogout} onViewChange={setView} currentView={view} />
-                    <div className="container">
-                        {view === 'dashboard' && (
-                            currentUser.type === 'butik' 
-                                ? <StoreDashboard user={currentUser} showNotification={showNotification} />
-                                : <RestaurantDashboard user={currentUser} showNotification={showNotification} />
-                        )}
-                        {view === 'profile' && (
-                            <ProfileView user={currentUser} showNotification={showNotification} />
-                        )}
-                    </div>
-                    {notification && (
-                        <div className={`notification ${notification.type}`}> 
-                            <h3>{notification.type === 'success' ? '✓ Lyckades!' : '⚠ Observera'}</h3>
-                            <p>{notification.message}</p>
-                        </div>
-                    )}
-                </>
-            );
+        // Periodic housekeeping to expire offers
+        startExpiryLoop(){
+          if(this._expiryStarted) return;this._expiryStarted=true;setInterval(()=>{let changed=false;const offers=this.getOffers();for(const o of offers){if(o.status==='active' && Date.now()>o.expiresAt){o.status='expired';changed=true}} if(changed)this.saveOffers(offers)},30000);
         }
+      };
 
-        // Login Screen
-        function LoginScreen({ onLogin, showNotification }) {
-            const [username, setUsername] = useState('');
-            const [password, setPassword] = useState('');
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                const users = await storage.get('users');
-                
-                if (users && users[username] && users[username].password === password) {
-                    onLogin({ username, ...users[username] });
-                } else {
-                    showNotification('Felaktigt användarnamn eller lösenord', 'error');
-                }
-            };
-
-            return (
-                <div className="login-container">
-                    <div className="login-box">
-                        <h1><span className="logo-emoji">🥬</span>Matsvinn</h1>
-                        <p className="subtitle">Mullsjö - Minska matsvinnet tillsammans</p>
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Användarnamn</label>
-                                <input 
-                                    type="text" 
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="ica, coop, restaurang1..."
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Lösenord</label>
-                                <input 
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="btn btn-primary">Logga in</button>
-                        </form>
-                        <div style={{ marginTop: '30px', padding: '15px', background: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem', color: '#666' }}>
-                            <strong>Demo-konton:</strong><br />
-                            Butiker: ica, coop, willys (lösenord: butiknamn + 123)<br />
-                            Restauranger: restaurang1-8 (lösenord: rest123)
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // Header Component
-        function Header({ user, onLogout, onViewChange, currentView }) {
-            return (
-                <div className="header">
-                    <div className="header-content">
-                        <div className="logo">
-                            <span className="logo-emoji">🥬</span>
-                            Matsvinn Mullsjö
-                        </div>
-                        <div className="user-info">
-                            <span className="user-badge">{user.profile.name}</span>
-                            <button className="btn btn-outline" onClick={() => onViewChange(currentView === 'dashboard' ? 'profile' : 'dashboard')} style={{ padding: '8px 16px' }}>
-                                {currentView === 'dashboard' ? '👤 Profil' : '🏠 Hem'}
-                            </button>
-                            <button className="btn btn-outline" onClick={onLogout} style={{ padding: '8px 16px' }}>
-                                Logga ut
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // Store Dashboard
-        function StoreDashboard({ user, showNotification }) {
-            const [offers, setOffers] = useState([]);
-            const [showForm, setShowForm] = useState(false);
-            const [tab, setTab] = useState('active');
-
-            useEffect(() => {
-                loadOffers();
-                const interval = setInterval(loadOffers, 10000); // Update every 10 seconds
-                return () => clearInterval(interval);
-            }, []);
-
-            const loadOffers = async () => {
-                const keys = await storage.list('offer:');
-                const allOffers = [];
-                for (const key of keys) {
-                    const offer = await storage.get(key);
-                    if (offer && offer.storeUsername === user.username) {
-                        allOffers.push(offer);
-                    }
-                }
-                setOffers(allOffers.sort((a, b) => b.createdAt - a.createdAt));
-            };
-
-            const handleCreateOffer = async (offerData) => {
-                const offer = {
-                    id: 'offer:' + Date.now(),
-                    ...offerData,
-                    storeUsername: user.username,
-                    storeName: user.profile.name,
-                    createdAt: Date.now(),
-                    expiresAt: Date.now() + (2 * 60 * 60 * 1000), // 2 hours
-                    status: 'active'
-                };
-                
-                await storage.set(offer.id, offer);
-                setShowForm(false);
-                loadOffers();
-                showNotification('Erbjudande skapat! Restauranger får nu en notifiering.');
-            };
-
-            const activeOffers = offers.filter(o => o.status === 'active');
-            const acceptedOffers = offers.filter(o => o.status === 'accepted');
-            const expiredOffers = offers.filter(o => o.status === 'expired');
-
-            return (
-                <div className="dashboard">
-                    <div className="card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h2>Mina erbjudanden</h2>
-                            <button className="btn btn-secondary" onClick={() => setShowForm(!showForm)}>
-                                {showForm ? '✕ Avbryt' : '+ Nytt erbjudande'}
-                            </button>
-                        </div>
-
-                        {showForm && <CreateOfferForm onSubmit={handleCreateOffer} />}
-
-                        <div className="tabs">
-                            <button className={`tab ${tab === 'active' ? 'active' : ''}`} onClick={() => setTab('active')}>
-                                Aktiva ({activeOffers.length})
-                            </button>
-                            <button className={`tab ${tab === 'accepted' ? 'active' : ''}`} onClick={() => setTab('accepted')}>
-                                Accepterade ({acceptedOffers.length})
-                            </button>
-                            <button className={`tab ${tab === 'expired' ? 'active' : ''}`} onClick={() => setTab('expired')}>
-                                Utgångna ({expiredOffers.length})
-                            </button>
-                        </div>
-
-                        {tab === 'active' && <OffersList offers={activeOffers} type="store" onUpdate={loadOffers} showNotification={showNotification} />}
-                        {tab === 'accepted' && <OffersList offers={acceptedOffers} type="store" showContact={true} />}
-                        {tab === 'expired' && <OffersList offers={expiredOffers} type="store" />}
-                    </div>
-                </div>
-            );
-        }
-
-        // Restaurant Dashboard
-        function RestaurantDashboard({ user, showNotification }) {
-            const [offers, setOffers] = useState([]);
-            const [tab, setTab] = useState('available');
-
-            useEffect(() => {
-                loadOffers();
-                const interval = setInterval(loadOffers, 5000); // Update every 5 seconds
-                return () => clearInterval(interval);
-            }, []);
-
-            const loadOffers = async () => {
-                const keys = await storage.list('offer:');
-                const allOffers = [];
-                for (const key of keys) {
-                    const offer = await storage.get(key);
-                    if (offer) {
-                        // Check if expired
-                        if (offer.status === 'active' && Date.now() > offer.expiresAt) {
-                            offer.status = 'expired';
-                            await storage.set(key, offer);
-                        }
-                        allOffers.push(offer);
-                    }
-                }
-                setOffers(allOffers.sort((a, b) => b.createdAt - a.createdAt));
-            };
-
-            const handleAccept = async (offer) => {
-                offer.status = 'accepted';
-                offer.acceptedBy = user.username;
-                offer.acceptedByName = user.profile.name;
-                offer.acceptedAt = Date.now();
-                await storage.set(offer.id, offer);
-                loadOffers();
-                showNotification(`Du har accepterat erbjudandet! Kontakta ${offer.storeName} för upphämtning.`);
-            };
-
-            const availableOffers = offers.filter(o => o.status === 'active');
-            const myAcceptedOffers = offers.filter(o => o.status === 'accepted' && o.acceptedBy === user.username);
-
-            return (
-                <div className="dashboard">
-                    <div className="card">
-                        <h2>Tillgängliga erbjudanden</h2>
-                        
-                        <div className="tabs">
-                            <button className={`tab ${tab === 'available' ? 'active' : ''}`} onClick={() => setTab('available')}>
-                                Tillgängliga ({availableOffers.length})
-                            </button>
-                            <button className={`tab ${tab === 'accepted' ? 'active' : ''}`} onClick={() => setTab('accepted')}>
-                                Mina accepterade ({myAcceptedOffers.length})
-                            </button>
-                        </div>
-
-                        {tab === 'available' && (
-                            <OffersList 
-                                offers={availableOffers} 
-                                type="restaurant" 
-                                onAccept={handleAccept}
-                                showNotification={showNotification}
-                            />
-                        )}
-                        {tab === 'accepted' && (
-                            <OffersList offers={myAcceptedOffers} type="restaurant" showContact={true} />
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        // Create Offer Form
-        function CreateOfferForm({ onSubmit }) {
-            const [formData, setFormData] = useState({
-                produktNamn: '',
-                mängd: '',
-                pris: '',
-                beskrivning: ''
-            });
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onSubmit(formData);
-                setFormData({ produktNamn: '', mängd: '', pris: '', beskrivning: '' });
-            };
-
-            return (
-                <form onSubmit={handleSubmit} style={{ background: 'var(--cream)', padding: '25px', borderRadius: '16px', marginBottom: '25px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                        <div className="form-group">
-                            <label>Produktnamn *</label>
-                            <input 
-                                type="text" 
-                                value={formData.produktNamn}
-                                onChange={(e) => setFormData({...formData, produktNamn: e.target.value})}
-                                placeholder="T.ex. Färsk lax"
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Mängd *</label>
-                            <input 
-                                type="text" 
-                                value={formData.mängd}
-                                onChange={(e) => setFormData({...formData, mängd: e.target.value})}
-                                placeholder="T.ex. 2 kg"
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Pris (kr) *</label>
-                            <input 
-                                type="number" 
-                                value={formData.pris}
-                                onChange={(e) => setFormData({...formData, pris: e.target.value})}
-                                placeholder="50"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <label>Beskrivning (valfritt)</label>
-                        <textarea 
-                            value={formData.beskrivning}
-                            onChange={(e) => setFormData({...formData, beskrivning: e.target.value})}
-                            placeholder="Ytterligare information om produkten..."
-                            rows="3"
-                        />
-                    </div>
-                    <button type="submit" className="btn btn-primary">Skapa erbjudande</button>
-                </form>
-            );
-        }
-
-        // Offers List
-        function OffersList({ offers, type, onAccept, onUpdate, showContact, showNotification }) {
-            if (offers.length === 0) {
-                return (
-                    <div className="empty-state">
-                        <div className="empty-state-icon">📦</div>
-                        <h3>Inga erbjudanden</h3>
-                        <p>{type === 'store' ? 'Skapa ditt första erbjudande!' : 'Det finns inga tillgängliga erbjudanden just nu.'}</p>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="offers-grid">
-                    {offers.map(offer => (
-                        <OfferCard 
-                            key={offer.id} 
-                            offer={offer} 
-                            type={type}
-                            onAccept={onAccept}
-                            showContact={showContact}
-                            showNotification={showNotification}
-                        />
-                    ))}
-                </div>
-            );
-        }
-
-        // Offer Card
-        function OfferCard({ offer, type, onAccept, showContact, showNotification }) {
-            const [timeLeft, setTimeLeft] = useState('');
-
-            useEffect(() => {
-                if (offer.status === 'active') {
-                    const updateTimer = () => {
-                        const remaining = offer.expiresAt - Date.now();
-                        if (remaining <= 0) {
-                            setTimeLeft('Utgånget');
-                        } else {
-                            const hours = Math.floor(remaining / (60 * 60 * 1000));
-                            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-                            setTimeLeft(`${hours}h ${minutes}m`);
-                        }
-                    };
-                    updateTimer();
-                    const interval = setInterval(updateTimer, 30000); // Update every 30 seconds
-                    return () => clearInterval(interval);
-                }
-            }, [offer]);
-
-            const isUrgent = offer.status === 'active' && (offer.expiresAt - Date.now()) < 30 * 60 * 1000; // Less than 30 minutes
-
-            return (
-                <div className="offer-card">
-                    <div className="offer-header">
-                        <div>
-                            {type === 'restaurant' && <div className="store-badge">{offer.storeName}</div>}
-                            <div className="offer-title">{offer.produktNamn}</div>
-                        </div>
-                        <div className="offer-price">{offer.pris} kr</div>
-                    </div>
-
-                    <div className="offer-details">
-                        <div className="offer-detail-item">
-                            📦 <strong>Mängd:</strong> {offer.mängd}
-                        </div>
-                        {offer.beskrivning && (
-                            <div className="offer-detail-item">
-                                📝 {offer.beskrivning}
-                            </div>
-                        )}
-                    </div>
-
-                    {offer.status === 'active' && (
-                        <div className={`timer ${isUrgent ? 'urgent' : ''}`}> 
-                            ⏱️ {timeLeft} kvar
-                        </div>
-                    )}
-
-                    {offer.status === 'accepted' && (
-                        <div className="status-badge status-accepted">
-                            ✓ Accepterat av {offer.acceptedByName}
-                        </div>
-                    )}
-
-                    {offer.status === 'expired' && (
-                        <div className="status-badge" style={{ background: 'rgba(220, 53, 69, 0.2)', color: '#dc3545' }}>
-                            ⌛ Utgånget
-                        </div>
-                    )}
-
-                    {type === 'restaurant' && offer.status === 'active' && (
-                        <button 
-                            className="btn btn-success" 
-                            onClick={() => onAccept(offer)}
-                            style={{ width: '100%', marginTop: '10px' }}
-                        >
-                            ✓ Acceptera erbjudande
-                        </button>
-                    )}
-
-                    {showContact && offer.status === 'accepted' && (
-                        <div className="contact-info">
-                            <strong style={{ display: 'block', marginBottom: '10px', color: 'var(--green-dark)' }}>
-                                📞 Kontaktuppgifter för upphämtning:
-                            </strong>
-                            <div className="contact-info-item">
-                                🏪 <strong>{type === 'restaurant' ? offer.storeName : offer.acceptedByName}</strong>
-                            </div>
-                            {type === 'restaurant' && (
-                                <>
-                                    <div className="contact-info-item">
-                                        📍 Kontakta butiken för upphämtningsdetaljer
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {type === 'store' && (
-                        <div style={{ marginTop: '12px' }}>
-                            <small style={{ color: 'var(--gray)' }}>ID: {offer.id}</small>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        // Profile View
-        function ProfileView({ user, showNotification }) {
-            const [profile, setProfile] = useState(user.profile || {});
-            const [editing, setEditing] = useState(false);
-
-            const handleSave = async () => {
-                // Save profile to users object
-                const users = await storage.get('users') || {};
-                if (users[user.username]) {
-                    users[user.username].profile = profile;
-                    await storage.set('users', users);
-                    showNotification('Profil uppdaterad');
-                    setEditing(false);
-                }
-            };
-
-            return (
-                <div className="card">
-                    <h2>Min profil</h2>
-                    <div style={{ marginTop: '20px' }}>
-                        <div className="form-group">
-                            <label>Företags-/Namn</label>
-                            <input value={profile.name || ''} onChange={(e) => setProfile({...profile, name: e.target.value})} />
-                        </div>
-                        <div className="form-group">
-                            <label>Telefon</label>
-                            <input value={profile.phone || ''} onChange={(e) => setProfile({...profile, phone: e.target.value})} />
-                        </div>
-                        <div className="form-group">
-                            <label>Email</label>
-                            <input value={profile.email || ''} onChange={(e) => setProfile({...profile, email: e.target.value})} />
-                        </div>
-                        <div className="form-group">
-                            <label>Adress</label>
-                            <input value={profile.address || ''} onChange={(e) => setProfile({...profile, address: e.target.value})} />
-                        </div>
-                        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                            <button className="btn btn-primary" onClick={handleSave}>Spara</button>
-                            <button className="btn btn-outline" onClick={() => setEditing(!editing)}>{editing ? 'Avbryt' : 'Redigera'}</button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // Mount App
-        ReactDOM.render(<App />, document.getElementById('app'));
-    </script>
+      APP.init();APP.startExpiryLoop();
+      // expose for debugging (optional)
+      window.MATSVINN_APP = APP;
+    })();
+  </script>
 </body>
 </html>
